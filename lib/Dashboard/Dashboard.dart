@@ -294,7 +294,7 @@ class _DashboardState extends State<Dashboard> {
     // 4. Build SMS message body
     String smsBody = '';
     if (sosType == 'shake_alert') {
-      smsBody = '🚨 EMERGENCY ALERT\n\n'
+      smsBody = 'WESAFE EMERGENCY ALERT\n\n'
           'User: $userName\n'
           'Phone: $userPhone\n\n'
           'Shake Alert SOS has been triggered.\n\n'
@@ -302,7 +302,7 @@ class _DashboardState extends State<Dashboard> {
           '$mapLink\n\n'
           'Please contact them immediately.';
     } else {
-      smsBody = '🚨 WeSafe EMERGENCY ALERT 🚨\n'
+      smsBody = 'WESAFE EMERGENCY ALERT\n'
           'User: $userName\n'
           'Phone: $userPhone\n'
           'Trigger: $sosType\n';
