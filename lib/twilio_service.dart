@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:womensafteyhackfair/twilio_config.dart';
+import 'package:telephony/telephony.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// Service to send SMS via Twilio REST API.
 /// Works on all platforms (Web, Android, iOS) — no native SMS permissions needed.
@@ -10,14 +12,35 @@ class TwilioService {
   factory TwilioService() => _instance;
   TwilioService._internal();
 
-  /// Sends an SMS to [toNumber] with [messageBody] via Twilio.
-  /// Returns true if the message was queued successfully.
+  /// Sends an SMS to [toNumber] with [messageBody] via native Telephony (on Android) or falls back to Twilio.
+  /// Returns true if the message was sent or queued successfully.
   Future<bool> sendSMS({
     required String toNumber,
     required String messageBody,
   }) async {
     // Ensure number has country code
     String formattedNumber = _formatPhoneNumber(toNumber);
+
+    // Try native SMS first on Android if permission is granted
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        final smsStatus = await Permission.sms.status;
+        if (smsStatus.isGranted) {
+          debugPrint('Sending native SMS via Telephony to $formattedNumber...');
+          final telephony = Telephony.instance;
+          await telephony.sendSms(
+            to: formattedNumber,
+            message: messageBody,
+          );
+          debugPrint('✅ Native SMS sent successfully via Telephony');
+          return true;
+        } else {
+          debugPrint('SMS Permission not granted. Falling back to Twilio.');
+        }
+      } catch (e) {
+        debugPrint('❌ Native SMS failed: $e. Falling back to Twilio.');
+      }
+    }
 
     debugPrint('Using Twilio SID: ${TwilioConfig.accountSid}');
     debugPrint('Using Twilio Number: ${TwilioConfig.twilioNumber}');
